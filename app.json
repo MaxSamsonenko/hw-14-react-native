@@ -4,10 +4,10 @@
 		"slug": "hw-10-react-native",
 		"version": "1.0.0",
 		"orientation": "portrait",
-		"icon": "./assets/images/icon.png",
+		"icon": "./src/assets/images/icon.png",
 		"userInterfaceStyle": "light",
 		"splash": {
-			"image": "./assets/images/bg-image.jpg",
+			"image": "./src/assets/images/bg-image.jpg",
 			"resizeMode": "cover",
 			"backgroundColor": "#ffffff"
 		},
@@ -17,12 +17,12 @@
 		},
 		"android": {
 			"adaptiveIcon": {
-				"foregroundImage": "./assets/images/adaptive-icon.png",
+				"foregroundImage": "./src/assets/images/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
 			}
 		},
 		"web": {
-			"favicon": "./assets/images/favicon.png"
+			"favicon": "./src/assets/images/favicon.png"
 		},
 		"plugins": ["expo-font", "expo-camera"]
 	}
