@@ -11,44 +11,38 @@ import {
 	TouchableWithoutFeedback,
 	Keyboard,
 	Platform,
+	Alert,
 } from "react-native";
+
+import { registerDB } from "../utils/auth";
 
 import Input from "../components/Input";
 import Button from "../components/Button";
 import AddBtnSvg from "../components/Svg/AddBtnSvg";
-
-// type RootStackParamList = {
-// 	Home: {
-// 		screen: "HomeTabs";
-// 		params: {
-// 			screen: "Posts" | "CreatePosts" | "Profile";
-// 			params: {
-// 				username: string;
-// 				email: string;
-// 			};
-// 		};
-// 	};
-// 	Login: undefined;
-// };
-// type NavigationProps = StackNavigationProp<RootStackParamList>;
+import { useDispatch } from "react-redux";
 
 const RegistrationScreen: React.FC = () => {
 	const navigation = useNavigation();
-	const [username, setUsername] = useState<string>("");
+	const [displayName, setDisplayName] = useState<string>("");
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+	const dispatch = useDispatch();
 
-	const onRegister = () => {
-		navigation.navigate("Home", {
-			screen: "HomeTabs",
-			params: {
-				screen: "Posts",
-				params: { from: "Register", data: { username, email } },
-			},
-		});
+	const onRegister = async () => {
+		if (email === "" && password === "") {
+			Alert.alert("Please fill in the form");
+			return;
+		}
+		try {
+			await registerDB({ email, password, displayName }, dispatch);
+		} catch (error) {
+			Alert.alert("REGISTRATION FAILED");
+			console.log(error);
+			return;
+		}
 
-		setUsername("");
+		setDisplayName("");
 		setEmail("");
 		setPassword("");
 	};
@@ -92,8 +86,8 @@ const RegistrationScreen: React.FC = () => {
 						<View style={styles.inputsContainer}>
 							<Input
 								placeholder="Логін"
-								value={username}
-								onChangeText={setUsername}
+								value={displayName}
+								onChangeText={setDisplayName}
 								textContentType="username"
 								importantForAutofill="no"
 							/>

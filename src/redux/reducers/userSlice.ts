@@ -1,6 +1,14 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState = {
+interface UserState {
+	userInfo: {
+		uid: string;
+		email: string | null;
+		displayName: string | null;
+	} | null;
+}
+
+const initialState: UserState = {
 	userInfo: null,
 };
 
@@ -8,7 +16,7 @@ const userSlice = createSlice({
 	name: "user",
 	initialState,
 	reducers: {
-		setUserInfo(state, action) {
+		setUserInfo(state, action: PayloadAction<UserState["userInfo"]>) {
 			state.userInfo = action.payload;
 		},
 		clearUserInfo(state) {

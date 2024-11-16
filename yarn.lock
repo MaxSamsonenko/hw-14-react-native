@@ -5084,6 +5084,11 @@ ignore@^5.2.0:
   resolved "https://registry.npmjs.org/ignore/-/ignore-5.3.2.tgz"
   integrity sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==
 
+image-picker@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/image-picker/-/image-picker-0.3.1.tgz#6af8b50a2ffc98df5d4b9451373e39d2c6151485"
+  integrity sha512-mbT/R7LcbXxhIKoDCQAjjejzAja6+JnBlSOa7I7SnF1sMen2lIh2WCfq3JjBD+cCfxKZHks3ZxO9cQ0TFj1aOQ==
+
 image-size@^1.0.2:
   version "1.1.1"
   resolved "https://registry.npmjs.org/image-size/-/image-size-1.1.1.tgz"

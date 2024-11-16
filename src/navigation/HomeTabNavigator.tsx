@@ -12,11 +12,14 @@ import GridSvg from "../components/Svg/GridSvg";
 import LogoutSvg from "../components/Svg/LogoutSvg";
 import ArrowSvg from "../components/Svg/ArrowSvg";
 import UserSvg from "../components/Svg/UserSvg";
+import { useSelector, useDispatch } from "react-redux";
+import { logoutDB } from "../utils/auth";
 
 const Tab = createBottomTabNavigator();
 
 const HomeTabNavigator = () => {
 	const navigation = useNavigation();
+	const dispatch = useDispatch();
 	return (
 		<Tab.Navigator
 			screenOptions={({ route }) => ({
@@ -39,7 +42,7 @@ const HomeTabNavigator = () => {
 					headerRight: () => (
 						<Button
 							outerStyles={styles.logoutBtn}
-							onPress={() => navigation.navigate("Auth")}
+							onPress={() => logoutDB(dispatch)}
 						>
 							<LogoutSvg />
 						</Button>

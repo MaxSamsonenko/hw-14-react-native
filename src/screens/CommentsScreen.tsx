@@ -8,12 +8,43 @@ import {
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import SendBtnSvg from "../components/Svg/SendBtnSvg";
+import { useDispatch, useSelector } from "react-redux";
+import { useState } from "react";
+import { addCommentToFirestore } from "../utils/firestore";
+import { addCommentToPost } from "../redux/reducers/postsSlice";
+import { RootState } from "../redux/store/store";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 const CommentsScreen: React.FC = () => {
+	const userCurrent = useSelector((state: RootState) => state.user.userInfo);
 	const route = useRoute();
+	const dispatch = useDispatch();
+	const [commentText, setCommentText] = useState("");
 
 	const { post } = route.params || {};
 	console.log("in comments", post);
+	const handleAddComment = async () => {
+		if (!commentText.trim()) return;
+
+		const newComment = {
+			id: Date.now().toString(),
+			userId: userCurrent.uid,
+			comment: commentText.trim(),
+			datePosted: new Date().toISOString(),
+		};
+
+		try {
+			// Add comment to Firestore
+			await addCommentToFirestore(post.id, newComment);
+
+			// Dispatch comment to Redux
+			dispatch(addCommentToPost({ postId: post.id, comment: newComment }));
+
+			setCommentText(""); // Clear input
+		} catch (error) {
+			console.error("Error adding comment:", error);
+		}
+	};
 	return (
 		<View style={styles.container}>
 			<View style={styles.imageContainer}>
@@ -64,9 +95,13 @@ const CommentsScreen: React.FC = () => {
 					style={[styles.textInput]}
 					placeholder="Коментувати..."
 					placeholderTextColor="#BDBDBD"
+					value={commentText}
+					onChangeText={setCommentText}
 				/>
 				<View style={styles.button}>
-					<SendBtnSvg />
+					<TouchableOpacity onPress={handleAddComment}>
+						<SendBtnSvg />
+					</TouchableOpacity>
 				</View>
 			</View>
 		</View>

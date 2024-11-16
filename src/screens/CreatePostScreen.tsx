@@ -11,6 +11,9 @@ import {
 	TouchableOpacity,
 	Image,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { addPost } from "../redux/reducers/postsSlice";
+import { addPostToFirestore } from "../utils/firestore";
 
 import Button from "../components/Button";
 
@@ -18,6 +21,7 @@ import CameraSvg from "../components/Svg/CameraSvg";
 import MapPinSvg from "../components/Svg/MapPinSvg";
 import TrashSvg from "../components/Svg/TrashSvg";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { RootState } from "../redux/store/store";
 
 type RootStackParamList = {
 	Posts: {
@@ -37,6 +41,8 @@ type RootStackParamList = {
 type NavigationProps = StackNavigationProp<RootStackParamList, "Posts">;
 
 const CreatePostScreen: React.FC = () => {
+	const userCurrent = useSelector((state: RootState) => state.user.userInfo);
+	const dispatch = useDispatch();
 	const navigation = useNavigation<NavigationProps>();
 	const [facing, setFacing] = useState<CameraType>("back");
 	const [permission, requestPermission] = useCameraPermissions();
@@ -104,52 +110,36 @@ const CreatePostScreen: React.FC = () => {
 	console.log("the location in create posts: ", location);
 
 	const publishPicture = async () => {
-		if (capturedPhoto) {
+		if (capturedPhoto && photoName && address && location) {
 			try {
-				await MediaLibrary.saveToLibraryAsync(capturedPhoto);
-				console.log("Photo saved to library!");
+				const { latitude, longitude } = location.coords;
 
-				if (location && location.coords) {
-					console.log("Location data available:", location);
-					const { latitude, longitude } = location.coords;
+				const newPost = {
+					photo: capturedPhoto,
+					name: photoName,
+					address: address,
+					latitude,
+					longitude,
+					userId: userCurrent.uid,
+				};
 
-					try {
-						const addressResult = await Location.reverseGeocodeAsync({
-							latitude,
-							longitude,
-						});
+				const postId = await addPostToFirestore(newPost);
 
-						if (addressResult.length > 0) {
-							const { country, region } = addressResult[0];
-							setAddress(`${country}, ${region}`);
-							console.log("Address found:", `${country}, ${region}`);
-						} else {
-							console.warn("No address found for this location.");
-						}
-					} catch (error) {
-						console.error("Error fetching address:", error);
-					}
-				} else {
-					console.warn("Location data is not available.");
-				}
-
+				dispatch(
+					addPost({
+						id: postId,
+						...newPost,
+					})
+				);
 				navigation.navigate("Posts", {
 					from: "CreatePosts",
-					data: {
-						id: "001",
-						photo: capturedPhoto,
-						name: photoName,
-						address: address,
-						latitude: location.coords.latitude,
-						longitude: location.coords.longitude,
-					},
+					data: { id: postId, ...newPost },
 				});
-				console.log("Navigation to Posts screen triggered.");
+				console.log("Post uploaded successfully with ID:", postId);
 			} catch (error) {
-				console.error("Error in publishPicture:", error);
+				console.error("Error publishing post:", error);
 			}
 		}
-		console.log("publishPicture completed.");
 	};
 
 	return (

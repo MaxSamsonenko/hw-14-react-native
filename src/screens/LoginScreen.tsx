@@ -14,15 +14,22 @@ import {
 
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { loginDB } from "../utils/auth";
+import { useDispatch } from "react-redux";
 
 const LoginScreen: React.FC = () => {
 	const navigation = useNavigation();
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+	const dispatch = useDispatch();
 
-	const onLogin = () => {
-		console.log(` Email: ${email}, password: ${password}`);
+	const onLogin = async () => {
+		try {
+			await loginDB({ email, password }, dispatch);
+		} catch (error) {
+			console.log(error);
+		}
 		setEmail("");
 		setPassword("");
 	};

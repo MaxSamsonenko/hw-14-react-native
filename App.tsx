@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { PersistGate } from "redux-persist/integration/react";
-import { Provider } from "react-redux";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import store from "./src/redux/store/store";
 
 import { Text } from "react-native";
@@ -12,24 +12,32 @@ import AuthStackScreen from "./src/screens/AuthStackScreen";
 import HomeStackScreen from "./src/screens/HomeStackScreen";
 
 import "react-native-gesture-handler";
+import { authStateChanged } from "./src/utils/auth";
+// import { onAuthStateChanged } from "firebase/auth";
 
 SplashScreen.preventAutoHideAsync();
 const MainStack = createStackNavigator();
 
-const MainStackScreen = () => (
-	<MainStack.Navigator>
-		<MainStack.Screen
-			name="Auth"
-			component={AuthStackScreen}
-			options={{ headerShown: false }}
-		/>
-		<MainStack.Screen
-			name="Home"
-			component={HomeStackScreen}
-			options={{ headerShown: false }}
-		/>
-	</MainStack.Navigator>
-);
+const MainStackScreen = () => {
+	const userCurrent = useSelector((state) => state.user.userInfo);
+	return (
+		<MainStack.Navigator>
+			{userCurrent ? (
+				<MainStack.Screen
+					name="Home"
+					component={HomeStackScreen}
+					options={{ headerShown: false }}
+				/>
+			) : (
+				<MainStack.Screen
+					name="Auth"
+					component={AuthStackScreen}
+					options={{ headerShown: false }}
+				/>
+			)}
+		</MainStack.Navigator>
+	);
+};
 
 export default function App() {
 	const [fontsLoaded] = useFonts({
@@ -55,10 +63,22 @@ export default function App() {
 				loading={<Text>Loading...</Text>}
 				persistor={store.persistor}
 			>
-				<NavigationContainer>
-					<MainStackScreen />
-				</NavigationContainer>
+				<AuthListener />
 			</PersistGate>
 		</Provider>
 	);
 }
+
+const AuthListener = () => {
+	const dispatch = useDispatch();
+
+	useEffect(() => {
+		authStateChanged(dispatch);
+	}, [dispatch]);
+
+	return (
+		<NavigationContainer>
+			<MainStackScreen />
+		</NavigationContainer>
+	);
+};

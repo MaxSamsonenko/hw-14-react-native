@@ -5,16 +5,18 @@ import RegistrationScreen from "./RegistrationScreen";
 
 const AuthStack = createStackNavigator();
 
-const AuthStackScreen = () => (
-	<AuthStack.Navigator
-		initialRouteName="Login"
-		screenOptions={{
-			headerShown: false,
-		}}
-	>
-		<AuthStack.Screen name="Login" component={LoginScreen} />
-		<AuthStack.Screen name="Registration" component={RegistrationScreen} />
-	</AuthStack.Navigator>
-);
+const AuthStackScreen = () => {
+	return (
+		<AuthStack.Navigator
+			initialRouteName="Login"
+			screenOptions={{
+				headerShown: false,
+			}}
+		>
+			<AuthStack.Screen name="Login" component={LoginScreen} />
+			<AuthStack.Screen name="Registration" component={RegistrationScreen} />
+		</AuthStack.Navigator>
+	);
+};
 
 export default AuthStackScreen;

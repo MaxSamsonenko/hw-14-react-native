@@ -21,8 +21,10 @@ const PostCard: React.FC = ({ post }) => {
 				<View style={styles.commsWrapper}>
 					<TouchableOpacity
 						onPress={() => navigation.navigate("Comments", { post: post })}
+						style={styles.comments}
 					>
 						<MessageSvg />
+						<Text>{post.comments.length}</Text>
 					</TouchableOpacity>
 
 					<Text>{post?.commentsCount}</Text>
@@ -72,6 +74,9 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		gap: 4,
 		marginLeft: "auto",
+	},
+	comments: {
+		flexDirection: "row",
 	},
 });
 

@@ -11,6 +11,7 @@ import { useRoute, RouteProp } from "@react-navigation/native";
 
 // import { comments, Post } from "./comments";
 import PostCard from "../components/PostCard";
+import { useSelector } from "react-redux";
 
 // type RootStackParamList = {
 // 	Posts: {
@@ -21,9 +22,12 @@ import PostCard from "../components/PostCard";
 
 const PostsScreen: React.FC = () => {
 	const route = useRoute<RouteProp<RootStackParamList, "Posts">>();
-	console.log(route);
+	const userCurrent = useSelector((state) => state.user.userInfo);
+	const postsCurrent = useSelector((state) => state.posts.posts);
+	console.log("in posts:", postsCurrent);
+	// console.log("in posts screen:", userCurrent);
 	const { from, data } = route.params || {};
-	console.log("from: ", from, "data: ", data);
+	// console.log("from: ", from, "data: ", data);
 	const [posts, setPosts] = useState([]);
 
 	useEffect(() => {
@@ -32,7 +36,6 @@ const PostsScreen: React.FC = () => {
 		}
 	}, [from, data]);
 
-	console.log(posts);
 	return (
 		<View style={styles.mainContainer}>
 			<View style={styles.avatarNameWrapper}>
@@ -44,16 +47,16 @@ const PostsScreen: React.FC = () => {
 					/>
 				</View>
 				<View>
-					<Text style={styles.nameText}>{data?.username}</Text>
-					<Text style={styles.emailText}>{data?.email}</Text>
+					<Text style={styles.nameText}>{userCurrent?.displayName}</Text>
+					<Text style={styles.emailText}>{userCurrent?.email}</Text>
 				</View>
 			</View>
 			<SafeAreaView style={styles.container}>
 				<ScrollView>
-					{posts.length === 0 ? (
+					{postsCurrent.length === 0 ? (
 						<Text> There are no posts to view</Text>
 					) : (
-						posts.map((post) => <PostCard post={post} key={post.id} />)
+						postsCurrent.map((post) => <PostCard post={post} key={post.id} />)
 					)}
 				</ScrollView>
 			</SafeAreaView>
