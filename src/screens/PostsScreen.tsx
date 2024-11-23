@@ -7,60 +7,61 @@ import {
 	SafeAreaView,
 	ScrollView,
 } from "react-native";
-import { useRoute, RouteProp } from "@react-navigation/native";
 
-// import { comments, Post } from "./comments";
+import { ActivityIndicator, MD2Colors } from "react-native-paper";
+
 import PostCard from "../components/PostCard";
 import { useSelector } from "react-redux";
-
-// type RootStackParamList = {
-// 	Posts: {
-// 		username: string;
-// 		email: string;
-// 	};
-// };
+import { RootState } from "../redux/store/store";
 
 const PostsScreen: React.FC = () => {
-	const route = useRoute<RouteProp<RootStackParamList, "Posts">>();
-	const userCurrent = useSelector((state) => state.user.userInfo);
-	const postsCurrent = useSelector((state) => state.posts.posts);
+	const userCurrent = useSelector((state: RootState) => state.user.userInfo);
+	const postsCurrent = useSelector((state: RootState) => state.posts.posts);
 	console.log("in posts:", postsCurrent);
-	// console.log("in posts screen:", userCurrent);
-	const { from, data } = route.params || {};
-	// console.log("from: ", from, "data: ", data);
-	const [posts, setPosts] = useState([]);
+	console.log("in posts screen:", userCurrent);
 
-	useEffect(() => {
-		if (from === "CreatePosts" && data) {
-			setPosts((prevPosts) => [...prevPosts, data]);
-		}
-	}, [from, data]);
+	const isLoading = !userCurrent?.avatar || postsCurrent === null;
 
 	return (
-		<View style={styles.mainContainer}>
-			<View style={styles.avatarNameWrapper}>
-				<View style={styles.avatar}>
-					<Image
-						resizeMode="cover"
-						source={require("../assets/images/user-icon.png")}
-						style={[StyleSheet.absoluteFillObject, styles.userAvatar]}
-					/>
+		<>
+			{isLoading && (
+				<View style={styles.loaderOverlay}>
+					<ActivityIndicator size="large" color="#FF6C00" />
 				</View>
-				<View>
-					<Text style={styles.nameText}>{userCurrent?.displayName}</Text>
-					<Text style={styles.emailText}>{userCurrent?.email}</Text>
+			)}
+			<View style={styles.mainContainer}>
+				<View style={styles.avatarNameWrapper}>
+					<View style={styles.avatar}>
+						{userCurrent && (
+							<Image
+								resizeMode="cover"
+								source={{ uri: userCurrent.avatar }}
+								style={[StyleSheet.absoluteFillObject, styles.userAvatar]}
+							/>
+						)}
+					</View>
+					<View>
+						<Text style={styles.nameText}>{userCurrent?.displayName}</Text>
+						<Text style={styles.emailText}>{userCurrent?.email}</Text>
+					</View>
 				</View>
-			</View>
-			<SafeAreaView style={styles.container}>
-				<ScrollView>
-					{postsCurrent.length === 0 ? (
-						<Text> There are no posts to view</Text>
+				<SafeAreaView style={styles.container}>
+					{postsCurrent ? (
+						<ScrollView>
+							{postsCurrent.length === 0 ? (
+								<Text> There are no posts to view</Text>
+							) : (
+								postsCurrent.map((post) => (
+									<PostCard post={post} key={post.id} />
+								))
+							)}
+						</ScrollView>
 					) : (
-						postsCurrent.map((post) => <PostCard post={post} key={post.id} />)
+						<ActivityIndicator animating={true} color={MD2Colors.red800} />
 					)}
-				</ScrollView>
-			</SafeAreaView>
-		</View>
+				</SafeAreaView>
+			</View>
+		</>
 	);
 };
 
@@ -98,6 +99,13 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flex: 1,
+	},
+	loaderOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
+		justifyContent: "center",
+		alignItems: "center",
+		zIndex: 10,
 	},
 });
 

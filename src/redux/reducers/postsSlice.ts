@@ -36,6 +36,9 @@ const postsSlice = createSlice({
 		setPosts(state, action: PayloadAction<Post[]>) {
 			state.posts = action.payload;
 		},
+		clearPosts(state) {
+			state.posts = [];
+		},
 		addCommentToPost(
 			state,
 			action: PayloadAction<{ postId: string; comment: Comment }>
@@ -49,6 +52,7 @@ const postsSlice = createSlice({
 	},
 });
 
-export const { addPost, setPosts, addCommentToPost } = postsSlice.actions;
+export const { addPost, setPosts, addCommentToPost, clearPosts } =
+	postsSlice.actions;
 
 export default postsSlice.reducer;

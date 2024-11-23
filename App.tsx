@@ -5,7 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { PersistGate } from "redux-persist/integration/react";
 import { Provider, useDispatch, useSelector } from "react-redux";
-import store from "./src/redux/store/store";
+import store, { RootState } from "./src/redux/store/store";
 
 import { Text } from "react-native";
 import AuthStackScreen from "./src/screens/AuthStackScreen";
@@ -19,7 +19,7 @@ SplashScreen.preventAutoHideAsync();
 const MainStack = createStackNavigator();
 
 const MainStackScreen = () => {
-	const userCurrent = useSelector((state) => state.user.userInfo);
+	const userCurrent = useSelector((state: RootState) => state.user.userInfo);
 	return (
 		<MainStack.Navigator>
 			{userCurrent ? (

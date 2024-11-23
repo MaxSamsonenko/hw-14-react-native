@@ -10,6 +10,11 @@ import {
 	TextInput,
 	TouchableOpacity,
 	Image,
+	KeyboardAvoidingView,
+	Platform,
+	TouchableWithoutFeedback,
+	Keyboard,
+	Alert,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { addPost } from "../redux/reducers/postsSlice";
@@ -22,6 +27,7 @@ import MapPinSvg from "../components/Svg/MapPinSvg";
 import TrashSvg from "../components/Svg/TrashSvg";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootState } from "../redux/store/store";
+import { uploadPhotoToStorage } from "../utils/helpers";
 
 type RootStackParamList = {
 	Posts: {
@@ -84,6 +90,30 @@ const CreatePostScreen: React.FC = () => {
 			</View>
 		);
 	}
+	const fetchAddress = async (latitude: number, longitude: number) => {
+		try {
+			const [address] = await Location.reverseGeocodeAsync({
+				latitude,
+				longitude,
+			});
+			if (address) {
+				let formattedAddress = "";
+				if (address.city === address.region) {
+					formattedAddress = `${address.city || ""}, ${
+						address.subregion || ""
+					}`;
+				} else {
+					formattedAddress = `${address.city || ""}, ${address.region || ""}`;
+				}
+
+				return formattedAddress;
+			}
+		} catch (error) {
+			Alert.alert("Error fetching address:");
+			console.error(error);
+		}
+		return "";
+	};
 
 	const takePicture = async () => {
 		if (cameraRef.current) {
@@ -92,11 +122,19 @@ const CreatePostScreen: React.FC = () => {
 				const photo = await cameraRef.current.takePictureAsync(options);
 				if (photo?.uri) {
 					setCapturedPhoto(photo.uri);
+					if (location) {
+						const { latitude, longitude } = location.coords;
+						const address = await fetchAddress(latitude, longitude);
+						setAddress(address);
+					} else {
+						Alert.alert("Location not available");
+					}
 				} else {
-					console.log("No photo captured");
+					Alert.alert("No photo captured");
 				}
 			} catch (error) {
-				console.log("Error taking picture:", error);
+				Alert.alert("Error taking picture:");
+				console.log(error);
 			}
 		}
 	};
@@ -107,20 +145,26 @@ const CreatePostScreen: React.FC = () => {
 		setAddress("");
 	};
 
-	console.log("the location in create posts: ", location);
-
 	const publishPicture = async () => {
+		if (!userCurrent) {
+			console.error("User is not logged in");
+			return;
+		}
 		if (capturedPhoto && photoName && address && location) {
+			console.log("Photo URI:", capturedPhoto);
 			try {
+				const uploadedPhotoUrl = await uploadPhotoToStorage(capturedPhoto);
+				console.log("uploadedPhoto:", uploadedPhotoUrl);
 				const { latitude, longitude } = location.coords;
 
 				const newPost = {
-					photo: capturedPhoto,
+					photo: uploadedPhotoUrl,
 					name: photoName,
 					address: address,
 					latitude,
 					longitude,
 					userId: userCurrent.uid,
+					comments: [],
 				};
 
 				const postId = await addPostToFirestore(newPost);
@@ -136,85 +180,97 @@ const CreatePostScreen: React.FC = () => {
 					data: { id: postId, ...newPost },
 				});
 				console.log("Post uploaded successfully with ID:", postId);
+				retakePicture();
 			} catch (error) {
-				console.error("Error publishing post:", error);
+				Alert.alert("Error publishing post");
+				console.error(error);
 			}
 		}
 	};
 
 	return (
-		<View style={styles.container}>
-			<View>
-				{capturedPhoto ? (
-					<View style={styles.previewContainer}>
-						<Image source={{ uri: capturedPhoto }} style={styles.preview} />
+		<KeyboardAvoidingView
+			style={{ flex: 1 }}
+			behavior={Platform.OS === "ios" ? "padding" : undefined}
+		>
+			<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+				<View style={styles.container}>
+					<View>
+						{capturedPhoto ? (
+							<View style={styles.previewContainer}>
+								<Image source={{ uri: capturedPhoto }} style={styles.preview} />
+							</View>
+						) : (
+							<CameraView
+								style={styles.camera}
+								facing={facing}
+								mirror={false}
+								ref={cameraRef}
+							>
+								<TouchableOpacity
+									style={styles.camContainer}
+									onPress={takePicture}
+								>
+									<CameraSvg fill="#FFFFFF" />
+								</TouchableOpacity>
+							</CameraView>
+						)}
+						{capturedPhoto ? (
+							<Text style={styles.subText}>Редагувати фото</Text>
+						) : (
+							<Text style={styles.subText}>Завантажте фото</Text>
+						)}
 					</View>
-				) : (
-					<CameraView
-						style={styles.camera}
-						facing={facing}
-						mirror={false}
-						ref={cameraRef}
+					<View style={styles.inputContainer}>
+						<View style={styles.input}>
+							<TextInput
+								value={photoName}
+								onChangeText={setPhotoName}
+								style={styles.textInput}
+								placeholder="Назва..."
+								placeholderTextColor="#BDBDBD"
+							/>
+						</View>
+						<View style={[styles.input, styles.locationInput]}>
+							<MapPinSvg />
+
+							<TextInput
+								value={address}
+								onChangeText={setAddress}
+								style={styles.textInput}
+								placeholder="Місцевість..."
+								placeholderTextColor="#BDBDBD"
+							/>
+						</View>
+					</View>
+					<Button
+						onPress={publishPicture}
+						disabled={!capturedPhoto || !photoName || !address}
 					>
-						<TouchableOpacity style={styles.camContainer} onPress={takePicture}>
-							<CameraSvg fill="#FFFFFF" />
-						</TouchableOpacity>
-					</CameraView>
-				)}
-				{capturedPhoto ? (
-					<Text style={styles.subText}>Редагувати фото</Text>
-				) : (
-					<Text style={styles.subText}>Завантажте фото</Text>
-				)}
-			</View>
-			<View style={styles.inputContainer}>
-				<View style={styles.input}>
-					<TextInput
-						value={photoName}
-						onChangeText={setPhotoName}
-						style={styles.textInput}
-						placeholder="Назва..."
-						placeholderTextColor="#BDBDBD"
-					/>
-				</View>
-				<View style={[styles.input, styles.locationInput]}>
-					<MapPinSvg />
+						<Text
+							style={[
+								styles.btnText,
+								capturedPhoto && photoName && address
+									? styles.btnTextEnabled
+									: null,
+							]}
+						>
+							Опубліковати
+						</Text>
+					</Button>
 
-					<TextInput
-						value={address}
-						onChangeText={setAddress}
-						style={styles.textInput}
-						placeholder="Місцевість..."
-						placeholderTextColor="#BDBDBD"
-					/>
+					<Button
+						onPress={retakePicture}
+						outerStyles={[
+							styles.deleteBtn,
+							capturedPhoto ? styles.deleteBtnActive : null,
+						]}
+					>
+						<TrashSvg fill={capturedPhoto ? "#FFFFFF" : "#BDBDBD"} />
+					</Button>
 				</View>
-			</View>
-			<Button
-				onPress={publishPicture}
-				disabled={!capturedPhoto || !photoName || !address}
-			>
-				<Text
-					style={[
-						styles.btnText,
-						capturedPhoto && photoName && address
-							? styles.btnTextEnabled
-							: null,
-					]}
-				>
-					Опубліковати
-				</Text>
-			</Button>
-
-			<Button
-				onPress={retakePicture}
-				outerStyles={[
-					styles.deleteBtn,
-					capturedPhoto && styles.deleteBtnActive,
-				]}
-			>
-				<TrashSvg fill={capturedPhoto ? "#FFFFFF" : "#BDBDBD"} />
-			</Button>
-		</View>
+			</TouchableWithoutFeedback>
+		</KeyboardAvoidingView>
 	);
 };
 
@@ -226,7 +282,6 @@ const styles = StyleSheet.create({
 		paddingRight: 16,
 		backgroundColor: "#FFFFFF",
 		gap: 32,
-		justifyContent: "center",
 	},
 	camera: {
 		display: "flex",
@@ -291,7 +346,6 @@ const styles = StyleSheet.create({
 		paddingTop: 8,
 		paddingLeft: 23,
 		paddingRight: 23,
-		marginTop: "auto",
 		marginLeft: "auto",
 		marginRight: "auto",
 		marginBottom: 34,

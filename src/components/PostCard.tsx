@@ -1,11 +1,34 @@
 import { StyleSheet, View, Image, Text, TouchableOpacity } from "react-native";
+import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/native-stack/types";
 
 import { useNavigation } from "@react-navigation/native";
 import MessageSvg from "./Svg/MessageSvg";
 import MapPinSvg from "./Svg/MapPinSvg";
 
-const PostCard: React.FC = ({ post }) => {
-	const navigation = useNavigation();
+type RootStackParamList = {
+	Comments: { post: Post };
+	Map: { post: Post };
+};
+
+type CommentsScreenNavigationProp = NativeStackNavigationProp<
+	RootStackParamList,
+	"Comments"
+>;
+type Post = {
+	photo: string;
+	name: string;
+	comments: [id: string, comment: string, datePosted: string, userId: string];
+	commentsCount?: number;
+	address: string;
+};
+type PostCardProps = {
+	post: Post;
+};
+
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
+	const navigation = useNavigation<CommentsScreenNavigationProp>();
+
+	console.log("post card", post);
 
 	return (
 		<View style={styles.container}>
@@ -53,6 +76,7 @@ const styles = StyleSheet.create({
 		marginBottom: 32,
 	},
 	imgWrapper: {
+		width: "100%",
 		height: 240,
 	},
 	image: {

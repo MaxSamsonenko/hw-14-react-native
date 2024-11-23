@@ -14,6 +14,8 @@ import {
 	Alert,
 } from "react-native";
 
+import * as ImagePicker from "expo-image-picker";
+
 import { registerDB } from "../utils/auth";
 
 import Input from "../components/Input";
@@ -21,12 +23,22 @@ import Button from "../components/Button";
 import AddBtnSvg from "../components/Svg/AddBtnSvg";
 import { useDispatch } from "react-redux";
 
+type RootStackParamList = {
+	Login: undefined;
+};
+
+type LoginScreenNavigationProp = StackNavigationProp<
+	RootStackParamList,
+	"Login"
+>;
+
 const RegistrationScreen: React.FC = () => {
-	const navigation = useNavigation();
+	const navigation = useNavigation<LoginScreenNavigationProp>();
 	const [displayName, setDisplayName] = useState<string>("");
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+	const [avatar, setAvatar] = useState<string | null>(null);
 	const dispatch = useDispatch();
 
 	const onRegister = async () => {
@@ -35,7 +47,7 @@ const RegistrationScreen: React.FC = () => {
 			return;
 		}
 		try {
-			await registerDB({ email, password, displayName }, dispatch);
+			await registerDB({ email, password, displayName, avatar }, dispatch);
 		} catch (error) {
 			Alert.alert("REGISTRATION FAILED");
 			console.log(error);
@@ -45,6 +57,7 @@ const RegistrationScreen: React.FC = () => {
 		setDisplayName("");
 		setEmail("");
 		setPassword("");
+		setAvatar(null);
 	};
 
 	const showBtn = (
@@ -57,6 +70,25 @@ const RegistrationScreen: React.FC = () => {
 			</Text>
 		</TouchableOpacity>
 	);
+
+	const pickImage = async () => {
+		try {
+			let result = await ImagePicker.launchImageLibraryAsync({
+				mediaTypes: ImagePicker.MediaTypeOptions.Images, // Ensure this is correct for your version of expo-image-picker
+				allowsEditing: true,
+				aspect: [4, 3],
+				quality: 1,
+			});
+
+			console.log(result);
+
+			if (!result.canceled) {
+				setAvatar(result.assets[0].uri);
+			}
+		} catch (error) {
+			console.error("Error picking image:", error); // Handle the error here
+		}
+	};
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -73,10 +105,10 @@ const RegistrationScreen: React.FC = () => {
 				>
 					<View style={styles.formContainer}>
 						<View style={styles.avatar}>
-							<TouchableOpacity
-								style={styles.avatarBtn}
-								onPress={() => console.log("Photo added")}
-							>
+							{avatar && (
+								<Image source={{ uri: avatar }} style={styles.avatarImage} />
+							)}
+							<TouchableOpacity style={styles.avatarBtn} onPress={pickImage}>
 								<AddBtnSvg />
 							</TouchableOpacity>
 						</View>
@@ -157,6 +189,11 @@ const styles = StyleSheet.create({
 		width: 120,
 		height: 120,
 		backgroundColor: "#F6F6F6",
+		borderRadius: 16,
+	},
+	avatarImage: {
+		height: "100%",
+		width: "100%",
 		borderRadius: 16,
 	},
 	avatarBtn: {

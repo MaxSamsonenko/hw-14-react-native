@@ -5,6 +5,10 @@ import {
 	TextInput,
 	Image,
 	ScrollView,
+	TouchableWithoutFeedback,
+	Keyboard,
+	KeyboardAvoidingView,
+	Platform,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import SendBtnSvg from "../components/Svg/SendBtnSvg";
@@ -14,97 +18,135 @@ import { addCommentToFirestore } from "../utils/firestore";
 import { addCommentToPost } from "../redux/reducers/postsSlice";
 import { RootState } from "../redux/store/store";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { ActivityIndicator } from "react-native-paper";
 
 const CommentsScreen: React.FC = () => {
 	const userCurrent = useSelector((state: RootState) => state.user.userInfo);
+	const [loading, setLoading] = useState<boolean>(false);
+
 	const route = useRoute();
 	const dispatch = useDispatch();
 	const [commentText, setCommentText] = useState("");
 
 	const { post } = route.params || {};
-	console.log("in comments", post);
-	const handleAddComment = async () => {
-		if (!commentText.trim()) return;
+	const postsCurrent = useSelector((state: RootState) =>
+		state.posts.posts.find((p) => p.id === post.id)
+	);
 
+	const formatDate = (date: Date): string => {
+		const day = date.getDate().toString().padStart(2, "0");
+		const month = date.toLocaleString("en-US", { month: "long" });
+		const year = date.getFullYear();
+		const hours = date.getHours().toString().padStart(2, "0");
+		const minutes = date.getMinutes().toString().padStart(2, "0");
+
+		return `${day} ${month} ${year} | ${hours}:${minutes}`;
+	};
+
+	const handleAddComment = async () => {
+		if (!userCurrent) {
+			console.error("User not logged in");
+			return;
+		}
+		if (!commentText.trim()) return;
+		setLoading(true);
 		const newComment = {
 			id: Date.now().toString(),
 			userId: userCurrent.uid,
 			comment: commentText.trim(),
-			datePosted: new Date().toISOString(),
+			datePosted: formatDate(new Date()),
+			own: true,
 		};
 
 		try {
-			// Add comment to Firestore
 			await addCommentToFirestore(post.id, newComment);
-
-			// Dispatch comment to Redux
 			dispatch(addCommentToPost({ postId: post.id, comment: newComment }));
-
-			setCommentText(""); // Clear input
+			setCommentText("");
 		} catch (error) {
 			console.error("Error adding comment:", error);
+		} finally {
+			setLoading(false);
 		}
 	};
 	return (
-		<View style={styles.container}>
-			<View style={styles.imageContainer}>
-				<Image
-					source={{ uri: post["photo"] }}
-					style={styles.image}
-					resizeMode="cover"
-				/>
-			</View>
-			<View style={styles.commentsContainer}>
-				<ScrollView>
-					<View style={styles.commentContainer}>
-						{post?.comments ? (
-							post.comments.map((comment) => (
-								<View
-									key={comment.id}
-									style={[
-										styles.commentContainer,
-										comment.own ? styles.rowReverse : styles.row,
-									]}
-								>
-									<View style={styles.avatarContainer}>
-										<Image
-											style={styles.avatar}
-											source={require("../assets/images/avatar1.png")}
-											resizeMode="cover"
-										/>
-									</View>
-									<View
-										style={[
-											styles.textContainer,
-											comment.own ? styles.myComment : styles.comment,
-										]}
-									>
-										<Text style={styles.text}>{comment.comment}</Text>
-										<Text style={styles.date}>{comment.datePosted}</Text>
-									</View>
-								</View>
-							))
-						) : (
-							<Text>No Comments Yet</Text>
-						)}
-					</View>
-				</ScrollView>
-			</View>
-			<View style={styles.input}>
-				<TextInput
-					style={[styles.textInput]}
-					placeholder="Коментувати..."
-					placeholderTextColor="#BDBDBD"
-					value={commentText}
-					onChangeText={setCommentText}
-				/>
-				<View style={styles.button}>
-					<TouchableOpacity onPress={handleAddComment}>
-						<SendBtnSvg />
-					</TouchableOpacity>
+		<>
+			{loading && (
+				<View style={styles.loaderOverlay}>
+					<ActivityIndicator size="large" color="#FF6C00" />
 				</View>
-			</View>
-		</View>
+			)}
+			<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+				<View style={styles.container}>
+					<KeyboardAvoidingView
+						style={styles.formWrapper}
+						behavior={Platform.OS === "ios" ? "padding" : undefined}
+						keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+					>
+						<View style={styles.imageContainer}>
+							<Image
+								source={{ uri: post["photo"] }}
+								style={styles.image}
+								resizeMode="cover"
+							/>
+						</View>
+						<View style={styles.commentsContainer}>
+							<ScrollView>
+								<View style={styles.commentContainer}>
+									{postsCurrent?.comments.length !== 0 ? (
+										postsCurrent?.comments.map((comment) => (
+											<View
+												key={comment.id}
+												style={[
+													styles.commentContainer,
+													comment.own ? styles.rowReverse : styles.row,
+												]}
+											>
+												<View style={styles.avatarContainer}>
+													<Image
+														style={styles.avatar}
+														source={{
+															uri: userCurrent?.avatar
+																? userCurrent.avatar
+																: "https://example.com/no-avatar.png",
+														}}
+														resizeMode="cover"
+													/>
+												</View>
+												<View
+													style={[
+														styles.textContainer,
+														comment.own ? styles.myComment : styles.comment,
+													]}
+												>
+													<Text style={styles.text}>{comment.comment}</Text>
+													<Text style={styles.date}>{comment.datePosted}</Text>
+												</View>
+											</View>
+										))
+									) : (
+										<Text>No Comments Yet</Text>
+									)}
+								</View>
+							</ScrollView>
+						</View>
+						<View style={styles.input}>
+							<TextInput
+								style={[styles.textInput]}
+								placeholder="Коментувати..."
+								placeholderTextColor="#BDBDBD"
+								value={commentText}
+								onChangeText={setCommentText}
+							/>
+							<View style={styles.button}>
+								<TouchableOpacity onPress={handleAddComment}>
+									<SendBtnSvg />
+								</TouchableOpacity>
+							</View>
+						</View>
+					</KeyboardAvoidingView>
+				</View>
+			</TouchableWithoutFeedback>
+		</>
 	);
 };
 
@@ -117,7 +159,13 @@ const styles = StyleSheet.create({
 		backgroundColor: "#FFFFFF",
 		gap: 32,
 	},
-	imageContainer: {},
+	formWrapper: {
+		flex: 1,
+		justifyContent: "center",
+	},
+	imageContainer: {
+		marginBottom: 32,
+	},
 	image: {
 		width: "100%",
 		height: 240,
@@ -137,7 +185,11 @@ const styles = StyleSheet.create({
 		width: 28,
 		height: 28,
 	},
-	avatar: {},
+	avatar: {
+		width: "100%",
+		height: "100%",
+		borderRadius: 50,
+	},
 	textContainer: {
 		flex: 1,
 		padding: 16,
@@ -174,6 +226,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: 500,
 		marginBottom: 16,
+		marginTop: 16,
 	},
 	textInput: {
 		padding: 16,
@@ -182,6 +235,13 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		top: 8,
 		right: 8,
+	},
+	loaderOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
+		justifyContent: "center",
+		alignItems: "center",
+		zIndex: 10,
 	},
 });
 

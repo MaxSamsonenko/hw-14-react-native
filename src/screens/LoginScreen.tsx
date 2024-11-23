@@ -16,19 +16,24 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { loginDB } from "../utils/auth";
 import { useDispatch } from "react-redux";
+import { ActivityIndicator } from "react-native-paper";
 
 const LoginScreen: React.FC = () => {
 	const navigation = useNavigation();
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+	const [loading, setLoading] = useState<boolean>(false);
 	const dispatch = useDispatch();
 
 	const onLogin = async () => {
+		setLoading(true);
 		try {
 			await loginDB({ email, password }, dispatch);
 		} catch (error) {
 			console.log(error);
+		} finally {
+			setLoading(false);
 		}
 		setEmail("");
 		setPassword("");
@@ -46,55 +51,62 @@ const LoginScreen: React.FC = () => {
 	);
 
 	return (
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-			<View style={styles.container}>
-				<Image
-					source={require("../assets/images/bg-image.jpg")}
-					style={[StyleSheet.absoluteFillObject, styles.image]}
-					resizeMode="cover"
-				/>
-				<KeyboardAvoidingView
-					style={styles.formWrapper}
-					behavior={Platform.OS === "ios" ? "padding" : undefined}
-					keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
-				>
-					<View style={styles.formContainer}>
-						<Text style={styles.title}>Увійти</Text>
+		<>
+			{loading && (
+				<View style={styles.loaderOverlay}>
+					<ActivityIndicator size="large" color="#FF6C00" />
+				</View>
+			)}
+			<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+				<View style={styles.container}>
+					<Image
+						source={require("../assets/images/bg-image.jpg")}
+						style={[StyleSheet.absoluteFillObject, styles.image]}
+						resizeMode="cover"
+					/>
+					<KeyboardAvoidingView
+						style={styles.formWrapper}
+						behavior={Platform.OS === "ios" ? "padding" : undefined}
+						keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+					>
+						<View style={styles.formContainer}>
+							<Text style={styles.title}>Увійти</Text>
 
-						<View style={styles.inputsContainer}>
-							<Input
-								placeholder="Адреса електронної пошти"
-								value={email}
-								onChangeText={setEmail}
-								textContentType="emailAddress"
-								keyboardType="email-address"
-							/>
+							<View style={styles.inputsContainer}>
+								<Input
+									placeholder="Адреса електронної пошти"
+									value={email}
+									onChangeText={setEmail}
+									textContentType="emailAddress"
+									keyboardType="email-address"
+								/>
 
-							<Input
-								placeholder="Пароль"
-								outerStyles={styles.passwordContainer}
-								showBtn={showBtn}
-								value={password}
-								onChangeText={setPassword}
-								secureTextEntry={!passwordVisible}
-							/>
+								<Input
+									placeholder="Пароль"
+									outerStyles={styles.passwordContainer}
+									showBtn={showBtn}
+									value={password}
+									onChangeText={setPassword}
+									secureTextEntry={!passwordVisible}
+								/>
+							</View>
+
+							<Button onPress={onLogin}>
+								<Text style={styles.buttonText}>Увійти</Text>
+							</Button>
+
+							<TouchableOpacity
+								onPress={() => navigation.navigate("Registration")}
+							>
+								<Text style={styles.linkText}>
+									Немає аккаунту? Зареєструватися
+								</Text>
+							</TouchableOpacity>
 						</View>
-
-						<Button onPress={onLogin}>
-							<Text style={styles.buttonText}>Увійти</Text>
-						</Button>
-
-						<TouchableOpacity
-							onPress={() => navigation.navigate("Registration")}
-						>
-							<Text style={styles.linkText}>
-								Немає аккаунту? Зареєструватися
-							</Text>
-						</TouchableOpacity>
-					</View>
-				</KeyboardAvoidingView>
-			</View>
-		</TouchableWithoutFeedback>
+					</KeyboardAvoidingView>
+				</View>
+			</TouchableWithoutFeedback>
+		</>
 	);
 };
 
@@ -181,5 +193,12 @@ const styles = StyleSheet.create({
 		color: "#1B4371",
 		marginTop: 16,
 		fontSize: 16,
+	},
+	loaderOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
+		justifyContent: "center",
+		alignItems: "center",
+		zIndex: 10,
 	},
 });

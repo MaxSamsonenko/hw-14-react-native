@@ -1,29 +1,51 @@
 {
-	"expo": {
-		"name": "hw-10-react-native",
-		"slug": "hw-10-react-native",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./src/assets/images/icon.png",
-		"userInterfaceStyle": "light",
-		"splash": {
-			"image": "./src/assets/images/bg-image.jpg",
-			"resizeMode": "cover",
-			"backgroundColor": "#ffffff"
-		},
-		"assetBundlePatterns": ["assets/fonts/*"],
-		"ios": {
-			"supportsTablet": true
-		},
-		"android": {
-			"adaptiveIcon": {
-				"foregroundImage": "./src/assets/images/adaptive-icon.png",
-				"backgroundColor": "#ffffff"
-			}
-		},
-		"web": {
-			"favicon": "./src/assets/images/favicon.png"
-		},
-		"plugins": ["expo-font", "expo-camera"]
-	}
+  "expo": {
+    "name": "hw-15-react-native",
+    "slug": "hw-15-react-native",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./src/assets/images/bg-image.jpg",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "assets/fonts/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.maxsam.hw15reactnative"
+    },
+    "web": {
+      "favicon": "./src/assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-camera",
+      "expo-image-picker"
+    ],
+    "permissions": [
+      "CAMERA",
+      "WRITE_EXTERNAL_STORAGE",
+      "READ_EXTERNAL_STORAGE",
+      "LOCATION"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ee8f4c8e-a71c-4e75-b726-84e3d70a8028"
+      }
+    }
+  }
 }

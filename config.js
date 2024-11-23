@@ -1,5 +1,5 @@
 // Для роботи із firebase обовʼязково треба ініціалізувати проект
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 // Функція для підключення авторизації в проект
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 // Функція для підключення бази даних у проект
@@ -13,13 +13,13 @@ const firebaseConfig = {
 	authDomain: "photo-app-fd88d.firebaseapp.com",
 	databaseURL: "<https://photo-app-fd88d.firebaseio.com>",
 	projectId: "photo-app-fd88d",
-	storageBucket: "photo-app-fd88d.appspot.com",
+	storageBucket: "gs://photo-app-fd88d.firebasestorage.app",
 	messagingSenderId: "938808823310",
 	appId: "app-id",
 	// measurementId: "G-measurement-id",
 };
 
-const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 export const auth = initializeAuth(app, {
 	persistence: getReactNativePersistence(AsyncStorage),

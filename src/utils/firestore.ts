@@ -7,7 +7,7 @@ import {
 	updateDoc,
 	arrayUnion,
 } from "firebase/firestore";
-import { db } from "../../config";
+import { db, storage } from "../../config";
 import { UserInfo } from "firebase/auth";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
@@ -15,6 +15,7 @@ interface UserData {
 	uid: string;
 	email: string;
 	displayName?: string | null;
+	avatar?: string;
 }
 
 interface PostData {
@@ -24,7 +25,6 @@ interface PostData {
 	latitude: number;
 	longitude: number;
 	userId: string;
-	createdAt: Date;
 }
 
 interface Comment {

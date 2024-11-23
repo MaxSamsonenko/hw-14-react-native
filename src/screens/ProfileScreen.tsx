@@ -1,9 +1,24 @@
 import React from "react";
-import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
+import {
+	StyleSheet,
+	View,
+	Text,
+	Image,
+	TouchableOpacity,
+	SafeAreaView,
+	ScrollView,
+} from "react-native";
 import RemoveBtnSvg from "../components/Svg/RemoveBtnSvg";
 import LogoutSvg from "../components/Svg/LogoutSvg";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store/store";
+import { ActivityIndicator, MD2Colors } from "react-native-paper";
+import PostCard from "../components/PostCard";
 
 const ProfileScreen: React.FC = () => {
+	const userCurrent = useSelector((state: RootState) => state.user.userInfo);
+	const postsCurrent = useSelector((state: RootState) => state.posts.posts);
+	const isLoading = !userCurrent?.avatar || postsCurrent === null;
 	return (
 		<View style={styles.container}>
 			<Image
@@ -13,6 +28,10 @@ const ProfileScreen: React.FC = () => {
 			/>
 			<View style={styles.formContainer}>
 				<View style={styles.avatar}>
+					<Image
+						source={{ uri: userCurrent?.avatar }}
+						style={styles.avatarImage}
+					/>
 					<TouchableOpacity
 						style={styles.avatarBtn}
 						onPress={() => console.log("Photo added")}
@@ -24,15 +43,46 @@ const ProfileScreen: React.FC = () => {
 					<LogoutSvg />
 				</View>
 
-				<Text style={styles.title}>User name</Text>
+				<Text style={styles.title}>{userCurrent?.displayName}</Text>
+				<>
+					{isLoading && (
+						<View style={styles.loaderOverlay}>
+							<ActivityIndicator size="large" color="#FF6C00" />
+						</View>
+					)}
+					{/* <View style={styles.mainContainer}> */}
+					<SafeAreaView style={styles.container}>
+						{postsCurrent ? (
+							<ScrollView>
+								{postsCurrent.length === 0 ? (
+									<Text> There are no posts to view</Text>
+								) : (
+									postsCurrent.map((post) => (
+										<PostCard post={post} key={post.id} />
+									))
+								)}
+							</ScrollView>
+						) : (
+							<ActivityIndicator animating={true} color={MD2Colors.red800} />
+						)}
+					</SafeAreaView>
+					{/* </View> */}
+				</>
 			</View>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
+	mainContainer: {
+		paddingLeft: 16,
+		paddingRight: 16,
+		flex: 1,
+		backgroundColor: "#FFFFFF",
+	},
 	container: {
 		flex: 1,
+		width: "100%",
 		backgroundColor: "#f0f0f0",
 	},
 	image: {
@@ -60,6 +110,11 @@ const styles = StyleSheet.create({
 		backgroundColor: "#F6F6F6",
 		borderRadius: 16,
 	},
+	avatarImage: {
+		width: "100%",
+		height: "100%",
+		borderRadius: 16,
+	},
 	avatarBtn: {
 		position: "absolute",
 		bottom: 14,
@@ -73,6 +128,13 @@ const styles = StyleSheet.create({
 	logoutBtn: {
 		marginTop: 22,
 		marginLeft: "auto",
+	},
+	loaderOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
+		justifyContent: "center",
+		alignItems: "center",
+		zIndex: 10,
 	},
 });
 

@@ -1,6 +1,10 @@
 import Svg, { Path } from "react-native-svg";
 
-const TrashSvg: React.FC = ({ fill = "#BDBDBD" }) => {
+type Props = {
+	fill?: string;
+};
+
+const TrashSvg: React.FC<Props> = ({ fill = "#BDBDBD" }) => {
 	return (
 		<Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
 			<Path

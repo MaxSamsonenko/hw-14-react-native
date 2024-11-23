@@ -5,6 +5,7 @@ interface UserState {
 		uid: string;
 		email: string | null;
 		displayName: string | null;
+		avatar: string;
 	} | null;
 }
 
